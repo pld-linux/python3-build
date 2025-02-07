@@ -13,7 +13,7 @@ Source0:	https://pypi.debian.net/build/build-%{version}.tar.gz
 # Source0-md5:	f80cc64db8e7fd8f8403a5e8a0562d4d
 URL:		https://pypi.org/project/build/
 BuildRequires:	python3-build
-BuildRequires:	python3-install
+BuildRequires:	python3-installer
 BuildRequires:	python3-modules >= 1:3.2
 %if %{with tests}
 #BuildRequires:	python3-
