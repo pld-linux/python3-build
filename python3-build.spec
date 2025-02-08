@@ -16,7 +16,9 @@ BuildRequires:	python3-build
 BuildRequires:	python3-installer
 BuildRequires:	python3-modules >= 1:3.2
 %if %{with tests}
-BuildRequires:	python3-flaky
+BuildRequires:	python3-pytest-rerunfailures
+# rerunfailures conflicts with flaky
+BuildConflicts:	python3-flaky
 %endif
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 2.044
@@ -46,16 +48,12 @@ Dokumentacja API modułu Pythona %{module}.
 %prep
 %setup -q -n %{module}-%{version}
 
-# reruns seem to come from pytest-rerunfailures but that's incompatible with flaky,
-# see https://github.com/pytest-dev/pytest-rerunfailures/blob/15.0/README.rst
-sed -i -e 's#reruns=5#max_runs=5#g' tests/test_main.py
-
 %build
 %py3_build_pyproject
 
 %if %{with tests}
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
-PYTEST_PLUGINS=flaky,pytest_mock \
+PYTEST_PLUGINS=rerunfailures,pytest_mock \
 %{__python3} -m pytest tests
 %endif
 
