@@ -16,16 +16,15 @@ BuildRequires:	python3-build
 BuildRequires:	python3-installer
 BuildRequires:	python3-modules >= 1:3.2
 %if %{with tests}
-#BuildRequires:	python3-
+BuildRequires:	python3-flaky
 %endif
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.714
+BuildRequires:	rpmbuild(macros) >= 2.044
 %if %{with doc}
 BuildRequires:	sphinx-pdg-3
 # or
 BuildRequires:	python3-tox
 %endif
-# replace with other requires if defined in setup.py
 Requires:	python3-modules >= 1:3.2
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -47,13 +46,16 @@ Dokumentacja API modułu Pythona %{module}.
 %prep
 %setup -q -n %{module}-%{version}
 
+# reruns seem to come from pytest-rerunfailures but that's incompatible with flaky,
+# see https://github.com/pytest-dev/pytest-rerunfailures/blob/15.0/README.rst
+sed -i -e 's#reruns=5#max_runs=5#g' tests/test_main.py
+
 %build
-%{__python3} -m build --wheel --no-isolation --outdir build-3
+%py3_build_pyproject
 
 %if %{with tests}
-# use explicit plugins list for reliable builds (delete PYTEST_PLUGINS if empty)
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
-PYTEST_PLUGINS= \
+PYTEST_PLUGINS=flaky,pytest_mock \
 %{__python3} -m pytest tests
 %endif
 
@@ -70,7 +72,7 @@ rm -rf docs/_build/html/_sources
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__python3} -m installer --destdir=$RPM_BUILD_ROOT build-3/*.whl
+%py3_install_pyproject
 
 %clean
 rm -rf $RPM_BUILD_ROOT
