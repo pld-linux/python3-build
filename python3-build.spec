@@ -22,8 +22,7 @@ BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 2.044
 %if %{with doc}
 BuildRequires:	sphinx-pdg-3
-# or
-BuildRequires:	python3-tox
+BuildRequires:	python3-sphinx_argparse_cli
 %endif
 Requires:	python3-modules >= 1:3.2
 BuildArch:	noarch
@@ -56,13 +55,10 @@ PYTEST_PLUGINS=rerunfailures,pytest_mock \
 %endif
 
 %if %{with doc}
-%{__make} -C docs html \
-	SPHINXBUILD=sphinx-build-3
+cd docs
+sphinx-build-3 -b html -d _build/doctrees   . _build/html
+cd ..
 rm -rf docs/_build/html/_sources
-
-# or
-
-%{_bindir}/tox -e docs
 %endif
 
 %install
