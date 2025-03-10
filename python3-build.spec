@@ -16,7 +16,7 @@
 Summary:	A simple, correct Python build frontend
 Name:		python3-%{module}
 Version:	1.2.2
-Release:	1.1
+Release:	1.2
 License:	MIT
 Group:		Libraries/Python
 Source0:	https://pypi.debian.net/build/build-%{version}.tar.gz
@@ -66,9 +66,18 @@ Dokumentacja API modułu Pythona %{module}.
 %build
 %if %{with bootstrap}
 export PYTHONPATH=$(pwd)/src:$(pwd)/pyproject_hooks-%{pyproject_hooks_version}/src:$(pwd)/flit_core-%{flit_core_version}:$(pwd)/installer-%{installer_version}/src
+%py3_build_pyproject --skip-dependency-check
+
+cd pyproject_hooks-%{pyproject_hooks_version}
+%py3_build_pyproject --skip-dependency-check
+
+cd ../flit_core-%{flit_core_version}
+%py3_build_pyproject --skip-dependency-check
+cd ..
+%else
+%py3_build_pyproject
 %endif
 
-%py3_build_pyproject %{?with_bootstrap:--skip-dependency-check}
 
 %if %{with tests}
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
@@ -88,6 +97,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %if %{with bootstrap}
 export PYTHONPATH=$(pwd)/src:$(pwd)/pyproject_hooks-%{pyproject_hooks_version}/src:$(pwd)/flit_core-%{flit_core_version}:$(pwd)/installer-%{installer_version}/src
+cd pyproject_hooks-%{pyproject_hooks_version}
+%py3_install_pyproject
+
+cd ../flit_core-%{flit_core_version}
+%py3_install_pyproject
+cd ..
 %endif
 
 %py3_install_pyproject
@@ -101,6 +116,12 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/pyproject-build
 %{py3_sitescriptdir}/%{module}
 %{py3_sitescriptdir}/%{module}-%{version}.dist-info
+%if %{with bootstrap}
+%{py3_sitescriptdir}/flit_core
+%{py3_sitescriptdir}/flit_core-%{flit_core_version}.dist-info
+%{py3_sitescriptdir}/pyproject_hooks
+%{py3_sitescriptdir}/pyproject_hooks-%{pyproject_hooks_version}.dist-info
+%endif
 
 %if %{with doc}
 %files apidocs
