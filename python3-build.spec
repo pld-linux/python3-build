@@ -16,7 +16,7 @@
 Summary:	A simple, correct Python build frontend
 Name:		python3-%{module}
 Version:	1.2.2
-Release:	1.2
+Release:	
 License:	MIT
 Group:		Libraries/Python
 Source0:	https://pypi.debian.net/build/build-%{version}.tar.gz
