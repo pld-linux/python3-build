@@ -34,7 +34,10 @@ BuildRequires:	python3-installer
 %endif
 BuildRequires:	python3-modules >= 1:3.2
 %if %{with tests}
+BuildRequires:	python3-filelock
+BuildRequires:	python3-pytest-mock
 BuildRequires:	python3-pytest-rerunfailures
+BuildRequires:	python3-virtualenv
 %endif
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 2.044
