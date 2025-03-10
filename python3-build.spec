@@ -1,19 +1,37 @@
 # Conditional build:
-%bcond_without	doc	# API documentation
-%bcond_without	tests	# unit tests
+%bcond_without	doc		# API documentation
+%bcond_without	tests		# unit tests
+%bcond_with	bootstrap	# bootsrapping without build and install installed
+
+%if %{with bootstrap}
+%undefine	with_doc
+%undefine	with_tests
+%endif
+
+%define		pyproject_hooks_version		1.2.0
+%define		flit_core_version		3.10.1
+%define		installer_version		0.7.0
 
 %define		module	build
 Summary:	A simple, correct Python build frontend
 Name:		python3-%{module}
 Version:	1.2.2
-Release:	1
+Release:	1.1
 License:	MIT
 Group:		Libraries/Python
 Source0:	https://pypi.debian.net/build/build-%{version}.tar.gz
 # Source0-md5:	f80cc64db8e7fd8f8403a5e8a0562d4d
+Source1:	https://pypi.debian.net/pyproject_hooks/pyproject_hooks-%{pyproject_hooks_version}.tar.gz
+# Source1-md5:	ed3dd1b984339e83e35f676d7169c192
+Source2:	https://pypi.debian.net/flit-core/flit_core-%{flit_core_version}.tar.gz
+# Source2-md5:	a3381dd58e23e9826c5199b1f70318b0
+Source3:	https://pypi.debian.net/installer/installer-%{installer_version}.tar.gz
+# Source3-md5:	d961d1105c9270049528b1167ed021bc
 URL:		https://pypi.org/project/build/
+%if %{without bootstrap}
 BuildRequires:	python3-build
 BuildRequires:	python3-installer
+%endif
 BuildRequires:	python3-modules >= 1:3.2
 %if %{with tests}
 BuildRequires:	python3-pytest-rerunfailures
@@ -43,10 +61,14 @@ API documentation for Python %{module} module.
 Dokumentacja API modułu Pythona %{module}.
 
 %prep
-%setup -q -n %{module}-%{version}
+%setup -q -a1 -a2 -a3 -n %{module}-%{version}
 
 %build
-%py3_build_pyproject
+%if %{with bootstrap}
+export PYTHONPATH=$(pwd)/src:$(pwd)/pyproject_hooks-%{pyproject_hooks_version}/src:$(pwd)/flit_core-%{flit_core_version}:$(pwd)/installer-%{installer_version}/src
+%endif
+
+%py3_build_pyproject %{?with_bootstrap:--skip-dependency-check}
 
 %if %{with tests}
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
@@ -63,6 +85,10 @@ rm -rf docs/_build/html/_sources
 
 %install
 rm -rf $RPM_BUILD_ROOT
+
+%if %{with bootstrap}
+export PYTHONPATH=$(pwd)/src:$(pwd)/pyproject_hooks-%{pyproject_hooks_version}/src:$(pwd)/flit_core-%{flit_core_version}:$(pwd)/installer-%{installer_version}/src
+%endif
 
 %py3_install_pyproject
 
