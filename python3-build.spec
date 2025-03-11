@@ -8,6 +8,11 @@
 %undefine	with_tests
 %endif
 
+# docs need furo, furo needs nodejs :(
+%ifarch x32
+%undefine	with_doc
+%endif
+
 %define		pyproject_hooks_version		1.2.0
 %define		flit_core_version		3.10.1
 %define		installer_version		0.7.0
@@ -27,6 +32,7 @@ Source2:	https://pypi.debian.net/flit-core/flit_core-%{flit_core_version}.tar.gz
 # Source2-md5:	a3381dd58e23e9826c5199b1f70318b0
 Source3:	https://pypi.debian.net/installer/installer-%{installer_version}.tar.gz
 # Source3-md5:	d961d1105c9270049528b1167ed021bc
+Patch0:		flit-core-PEP639.patch
 URL:		https://pypi.org/project/build/
 %if %{without bootstrap}
 BuildRequires:	python3-build
@@ -42,8 +48,10 @@ BuildRequires:	python3-virtualenv
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 2.044
 %if %{with doc}
-BuildRequires:	sphinx-pdg-3
+BuildRequires:	python3-furo
 BuildRequires:	python3-sphinx_argparse_cli
+BuildRequires:	python3-sphinx_autodoc_typehints
+BuildRequires:	sphinx-pdg-3
 %endif
 Requires:	python3-modules >= 1:3.2
 BuildArch:	noarch
@@ -64,7 +72,8 @@ API documentation for Python %{module} module.
 Dokumentacja API modułu Pythona %{module}.
 
 %prep
-%setup -q -a1 -a2 -a3 -n %{module}-%{version}
+%setup -q %{?with_bootstrap:-a1 -a2 -a3} -n %{module}-%{version}
+%patch -P 0 -p1
 
 %build
 %if %{with bootstrap}
