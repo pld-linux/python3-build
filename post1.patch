@@ -1,0 +1,164 @@
+diff --git a/README.md b/README.md
+index 33c98e9..daba7be 100644
+--- a/README.md
++++ b/README.md
+@@ -38,7 +38,7 @@ See the [documentation](https://build.pypa.io) for full information.
+ - `--installer`: Pick an installer for the isolated build (`pip` or `uv`).
+ - `--no-isolation` (`-n`): Disable build isolation.
+ - `--skip-dependency-check` (`-x`): Disable dependency checking when not isolated; this should be done if some requirements or version ranges are not required for non-isolated builds.
+-- `--outdir (`-o`): The output directory (defaults to `dist`)
++- `--outdir` (`-o`): The output directory (defaults to `dist`)
+ 
+ Some common combinations of arguments:
+ 
+@@ -84,6 +84,10 @@ build-frontend = "build[uv]"
+ 
+ (Be sure to pre-install uv before running cibuildwheel for this one!)
+ 
++#### Conda-forge
++
++On conda-forge, this package is called [python-build][].
++
+ ### Code of Conduct
+ 
+ Everyone interacting in the build's codebase, issue trackers, chat rooms, and mailing lists is expected to follow
+@@ -93,3 +97,4 @@ the [PSF Code of Conduct].
+ [pipx]: https://pipx.pypa.io
+ [uv]: https://docs.astral.sh/uv/
+ [cibuildwheel]: https://cibuildwheel.pypa.io
++[python-build]: https://github.com/conda-forge/python-build-feedstock
+diff --git a/pyproject.toml b/pyproject.toml
+index 83b3278..8aeb358 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -23,6 +23,7 @@ classifiers = [
+   "Programming Language :: Python :: 3.10",
+   "Programming Language :: Python :: 3.11",
+   "Programming Language :: Python :: 3.12",
++  "Programming Language :: Python :: 3.13",
+   "Programming Language :: Python :: Implementation :: CPython",
+   "Programming Language :: Python :: Implementation :: PyPy",
+ ]
+diff --git a/src/build/__init__.py b/src/build/__init__.py
+index d9cba65..b50acf7 100644
+--- a/src/build/__init__.py
++++ b/src/build/__init__.py
+@@ -18,7 +18,7 @@ from ._types import SubprocessRunner as RunnerType
+ from ._util import check_dependency
+ 
+ 
+-__version__ = '1.2.2'
++__version__ = '1.2.2.post1'
+ 
+ __all__ = [
+     '__version__',
+diff --git a/tests/packages/test-no-prepare/backend_no_prepare.py b/tests/packages/test-no-prepare/backend_no_prepare.py
+index a10da51..dd8172b 100644
+--- a/tests/packages/test-no-prepare/backend_no_prepare.py
++++ b/tests/packages/test-no-prepare/backend_no_prepare.py
+@@ -1,4 +1,25 @@
+ # SPDX-License-Identifier: MIT
+ 
+-from setuptools.build_meta import build_sdist as build_sdist
+-from setuptools.build_meta import build_wheel as build_wheel
++
++def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
++    import os.path
++    import zipfile
++
++    from build._compat import tomllib
++
++    with open('pyproject.toml', 'rb') as f:
++        metadata = tomllib.load(f)
++
++    wheel_basename = f"{metadata['project']['name'].replace('-', '_')}-{metadata['project']['version']}"
++    with zipfile.ZipFile(os.path.join(wheel_directory, f'{wheel_basename}-py3-none-any.whl'), 'w') as wheel:
++        wheel.writestr(
++            f'{wheel_basename}.dist-info/METADATA',
++            f"""\
++Metadata-Version: 2.2
++Name: {metadata['project']['name']}
++Version: {metadata['project']['version']}
++Summary: {metadata['project']['description']}
++""",
++        )
++
++    return wheel.filename
+diff --git a/tests/packages/test-no-prepare/pyproject.toml b/tests/packages/test-no-prepare/pyproject.toml
+index 2885c70..ccb6959 100644
+--- a/tests/packages/test-no-prepare/pyproject.toml
++++ b/tests/packages/test-no-prepare/pyproject.toml
+@@ -1,4 +1,9 @@
+ [build-system]
+ build-backend = 'backend_no_prepare'
+ backend-path = ['.']
+-requires = ['setuptools >= 42.0.0']
++requires = []
++
++[project]
++name = "test-no-prepare"
++version = "1.0.0"
++description = "Test extracting metadata from a backend w/out `prepare_metadata_for_build_wheel` hook"
+diff --git a/tests/packages/test-no-prepare/setup.cfg b/tests/packages/test-no-prepare/setup.cfg
+deleted file mode 100644
+index c9e0a96..0000000
+--- a/tests/packages/test-no-prepare/setup.cfg
++++ /dev/null
+@@ -1,3 +0,0 @@
+-[metadata]
+-name = test_no_prepare
+-version = 1.0.0
+diff --git a/tests/test_projectbuilder.py b/tests/test_projectbuilder.py
+index 77837ea..9a47814 100644
+--- a/tests/test_projectbuilder.py
++++ b/tests/test_projectbuilder.py
+@@ -504,8 +504,7 @@ def test_metadata_path_no_prepare(tmp_dir, package_test_no_prepare):
+         pathlib.Path(builder.metadata_path(tmp_dir)),
+     ).metadata
+ 
+-    # Setuptools < v69.0.3 (https://github.com/pypa/setuptools/pull/4159) normalized this to dashes
+-    assert metadata['name'].replace('-', '_') == 'test_no_prepare'
++    assert metadata['name'] == 'test-no-prepare'
+     assert metadata['Version'] == '1.0.0'
+ 
+ 
+diff --git a/tox.ini b/tox.ini
+index 0abe357..73418b8 100644
+--- a/tox.ini
++++ b/tox.ini
+@@ -7,7 +7,7 @@ env_list =
+     type
+     docs
+     path
+-    {py312, py311, py310, py39, py38, pypy310, pypy39, pypy38}{, -min}
++    {py313, py312, py311, py310, py39, py38, pypy310, pypy39, pypy38}{, -min}
+ skip_missing_interpreters = true
+ 
+ [testenv]
+@@ -54,7 +54,7 @@ commands =
+ 
+ [testenv:docs]
+ description = build documentations
+-base_python = python3.10
++base_python = python3.12
+ extras =
+     docs
+ commands =
+@@ -69,7 +69,7 @@ set_env =
+ commands_pre =
+     python -E -m pip uninstall -y build colorama
+ 
+-[testenv:{py312, py311, py310, py39, py38, pypy38, pypy39, pypy310}-min]
++[testenv:{py313, py312, py311, py310, py39, py38, pypy38, pypy39, pypy310}-min]
+ description = check minimum versions required of all dependencies
+ skip_install = true
+ commands_pre =
+@@ -105,7 +105,7 @@ commands =
+     python -m diff_cover.diff_cover_tool --compare-branch {env:DIFF_AGAINST:origin/main} {toxworkdir}/coverage.xml
+ depends =
+     path
+-    {py312, py311, py310, py39, py38, pypy310, pypy39, pypy38}{, -min}
++    {py313, py312, py311, py310, py39, py38, pypy310, pypy39, pypy38}{, -min}
+ 
+ [testenv:bump]
+ description = bump versions, pass major/minor/patch

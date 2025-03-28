@@ -33,6 +33,7 @@ Source2:	https://pypi.debian.net/flit-core/flit_core-%{flit_core_version}.tar.gz
 Source3:	https://pypi.debian.net/installer/installer-%{installer_version}.tar.gz
 # Source3-md5:	d961d1105c9270049528b1167ed021bc
 Patch0:		flit-core-PEP639.patch
+Patch1:		post1.patch
 URL:		https://pypi.org/project/build/
 %if %{without bootstrap}
 BuildRequires:	python3-build
@@ -43,6 +44,7 @@ BuildRequires:	python3-modules >= 1:3.2
 BuildRequires:	python3-filelock
 BuildRequires:	python3-pytest-mock
 BuildRequires:	python3-pytest-rerunfailures
+BuildRequires:	python3-tomli
 BuildRequires:	python3-virtualenv
 %endif
 BuildRequires:	rpm-pythonprov
@@ -74,6 +76,7 @@ Dokumentacja API modułu Pythona %{module}.
 %prep
 %setup -q %{?with_bootstrap:-a1 -a2 -a3} -n %{module}-%{version}
 %patch -P 0 -p1
+%patch -P 1 -p1
 
 %build
 %if %{with bootstrap}
@@ -92,6 +95,21 @@ cd ..
 
 
 %if %{with tests}
+# tests are confused, below is what it wants to load:
+# hypothesis-6.47.1
+# flaky-3.8.1
+# rerunfailures-15.0
+# timeout-1.4.2
+# datadir-1.4.1
+# forked-1.6.0
+# subtests-0.14.1
+# check-2.1.4
+# randomly-3.11.0
+# jaraco.test-5.5.1
+# cov-6.0.0
+# trio-0.8.0
+# asyncio-0.26.0
+# mock-3.14.0
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
 PYTEST_PLUGINS=rerunfailures,pytest_mock \
 %{__python3} -m pytest tests
