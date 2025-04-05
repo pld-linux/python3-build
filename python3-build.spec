@@ -97,23 +97,8 @@ cd ..
 
 
 %if %{with tests}
-# tests are confused, below is what it wants to load:
-# hypothesis-6.47.1
-# flaky-3.8.1
-# rerunfailures-15.0
-# timeout-1.4.2
-# datadir-1.4.1
-# forked-1.6.0
-# subtests-0.14.1
-# check-2.1.4
-# randomly-3.11.0
-# jaraco.test-5.5.1
-# cov-6.0.0
-# trio-0.8.0
-# asyncio-0.26.0
-# mock-3.14.0
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
-PYTEST_PLUGINS=rerunfailures,pytest_mock \
+PYTEST_PLUGINS=rerunfailures,pytest_mock,check \
 %{__python3} -m pytest tests
 %endif
 
