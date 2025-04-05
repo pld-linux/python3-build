@@ -21,7 +21,7 @@
 Summary:	A simple, correct Python build frontend
 Name:		python3-%{module}
 Version:	1.2.2
-Release:	2
+Release:	3
 License:	MIT
 Group:		Libraries/Python
 # https://pypi.org/simple/build/
