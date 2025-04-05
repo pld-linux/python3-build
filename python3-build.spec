@@ -24,13 +24,14 @@ Version:	1.2.2
 Release:	2
 License:	MIT
 Group:		Libraries/Python
-Source0:	https://pypi.debian.net/build/build-%{version}.tar.gz
+# https://pypi.org/simple/build/
+Source0:	https://files.pythonhosted.org/packages/source/b/build/build-%{version}.tar.gz
 # Source0-md5:	f80cc64db8e7fd8f8403a5e8a0562d4d
-Source1:	https://pypi.debian.net/pyproject_hooks/pyproject_hooks-%{pyproject_hooks_version}.tar.gz
+Source1:	https://files.pythonhosted.org/packages/source/p/pyproject_hooks/pyproject_hooks-%{pyproject_hooks_version}.tar.gz
 # Source1-md5:	ed3dd1b984339e83e35f676d7169c192
-Source2:	https://pypi.debian.net/flit-core/flit_core-%{flit_core_version}.tar.gz
+Source2:	https://files.pythonhosted.org/packages/source/f/flit-core/flit_core-%{flit_core_version}.tar.gz
 # Source2-md5:	a3381dd58e23e9826c5199b1f70318b0
-Source3:	https://pypi.debian.net/installer/installer-%{installer_version}.tar.gz
+Source3:	https://files.pythonhosted.org/packages/source/i/installer/installer-%{installer_version}.tar.gz
 # Source3-md5:	d961d1105c9270049528b1167ed021bc
 Patch0:		flit-core-PEP639.patch
 Patch1:		post1.patch
@@ -38,6 +39,7 @@ URL:		https://pypi.org/project/build/
 %if %{without bootstrap}
 BuildRequires:	python3-build
 BuildRequires:	python3-installer
+BuildRequires:	python3-flit_core
 %endif
 BuildRequires:	python3-modules >= 1:3.2
 %if %{with tests}
