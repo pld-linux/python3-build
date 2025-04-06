@@ -35,6 +35,7 @@ Source3:	https://files.pythonhosted.org/packages/source/i/installer/installer-%{
 # Source3-md5:	d961d1105c9270049528b1167ed021bc
 Patch0:		flit-core-PEP639.patch
 Patch1:		post1.patch
+Patch2:		non-py313-or-network-tests.patch
 URL:		https://pypi.org/project/build/
 %if %{without bootstrap}
 BuildRequires:	python3-build
@@ -79,6 +80,7 @@ Dokumentacja API modułu Pythona %{module}.
 %setup -q %{?with_bootstrap:-a1 -a2 -a3} -n %{module}-%{version}
 %patch -P 0 -p1
 %patch -P 1 -p1
+%patch -P 2 -p1
 
 %build
 %if %{with bootstrap}
@@ -132,7 +134,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc CHANGELOG.rst
 %attr(755,root,root) %{_bindir}/pyproject-build
 %{py3_sitescriptdir}/%{module}
-%{py3_sitescriptdir}/%{module}-%{version}.dist-info
+%{py3_sitescriptdir}/%{module}-%{version}*.dist-info
 %if %{with bootstrap}
 %{py3_sitescriptdir}/flit_core
 %{py3_sitescriptdir}/flit_core-%{flit_core_version}.dist-info
