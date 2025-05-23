@@ -1,3 +1,4 @@
+#
 # Conditional build:
 %bcond_without	doc		# API documentation
 %bcond_without	tests		# unit tests
@@ -19,6 +20,7 @@
 
 %define		module	build
 Summary:	A simple, correct Python build frontend
+Summary(pl.UTF-8):	Prosty, poprawny frontend do budowania pakietów Pythona
 Name:		python3-%{module}
 Version:	1.2.2
 Release:	3
@@ -65,6 +67,9 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 A simple, correct Python build frontend.
 
+%description -l pl.UTF-8
+Prosty, poprawny frontend do budowania pakietów Pythona.
+
 %package apidocs
 Summary:	API documentation for Python %{module} module
 Summary(pl.UTF-8):	Dokumentacja API modułu Pythona %{module}
@@ -96,7 +101,6 @@ cd ..
 %else
 %py3_build_pyproject
 %endif
-
 
 %if %{with tests}
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
