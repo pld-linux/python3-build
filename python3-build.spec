@@ -60,6 +60,12 @@ BuildRequires:	python3-sphinx_argparse_cli
 BuildRequires:	python3-sphinx_autodoc_typehints
 BuildRequires:	sphinx-pdg-3
 %endif
+%if %{with bootstrap}
+Provides:	python3-flit_core = %{flit_core_version}
+Provides:	python3-pyproject_hooks = %{pyproject_hooks_version}
+Obsoletes:	python3-flit_core <= %{flit_core_version}
+Obsoletes:	python3-pyproject_hooks <= %{pyproject_hooks_version}
+%endif
 Requires:	python3-modules >= 1:3.2
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
